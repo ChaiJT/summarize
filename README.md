@@ -1,6 +1,6 @@
 # summarize
 
-一个提取中文关键词和摘要的程序。 
+一个提取中文关键词和摘要的Python程序。 
 
 A NLP tool for extract keywords and summary from text.
 
