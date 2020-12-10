@@ -13,8 +13,12 @@ A NLP tool for extract keywords and summary from text.
 	from summarize.KeywordExtract import KeywordExtract
 	test_text = open("test_text.txt", "r", encoding="utf-8").read()	# 读取测试文本
 	keyword_extractor = KeywordExtract()
+	# 使用TextRank方法
 	keywords = keyword_extractor.get_keywords(text=test_text, topK=15, seg_tool="pku", window=2, use_stopwords=True, use_postags_filter=True)
 	print(keywords)
+	# 使用TF-IDF方法
+	keywords2 = keyword_extractor.get_keywords_by_tfidf(text=test_text, topK=15, seg_tool="pku")
+	print(keywords2)
 	#	结果形如：[(word1,weight1), (word2, weight2)...]
 
 ## 提取摘要
