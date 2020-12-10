@@ -4,6 +4,7 @@
 # from Tokenizer import Tokenizer
 import summarize.util as util
 from summarize.Tokenizer import Tokenizer
+from collections import Counter
 
 class KeywordExtract(object):
     """Textrank提取关键词"""
@@ -21,6 +22,48 @@ class KeywordExtract(object):
                              allow_speech_tags=allow_speech_tags,
                              delimiters=delimiters)
 
+    def get_keywords_by_tfidf(self,
+                              text: str,
+                              topK: int=10,
+                              word_min_len: int=2,
+                              use_stopwords: bool=True,
+                              use_postags_filter: bool = True,
+                              seg_tool: str = "jieba"
+                              ):
+        """使用TF-IDF计算关键词"""
+        dic_data = self.seg.segment_for_keyword(text=text,
+                                                use_stopwords=use_stopwords,
+                                                use_postags_filter=use_postags_filter,
+                                                seg_tool=seg_tool)
+        words = dic_data["words"][0]
+        # print(words)
+        tf_dict = dict(Counter(words))
+        idf_dict = util.idf_dict
+        tfidf_dict = {}
+        for word, tf_value in tf_dict.items():
+            try:
+                idf_value = idf_dict[word]
+            except Exception:
+                idf_value = 10.0    # idf缺省值设为10，根据idf词典确定，设大一些
+            tfidf_value = float(tf_value) * idf_value
+            tfidf_dict[word] = tfidf_value
+        sorted_word_scores = sorted(tfidf_dict.items(), key=lambda item: item[1], reverse=True)
+        keywords = []
+        for word, score in sorted_word_scores:
+            item = dict(word=word, weight=score)
+            keywords.append(item)
+        result = []
+        count = 0
+        for item in keywords:
+            if count >= len(keywords):
+                break
+            if count >= topK:
+                break
+            if len(item.get("word")) >= word_min_len:
+                result.append((item.get("word"), item.get("weight")))
+                count += 1
+        return result
+
     def get_keywords(self,
                      text: str,
                      topK: int = 10,
@@ -30,7 +73,7 @@ class KeywordExtract(object):
                      use_postags_filter: bool = True,
                      seg_tool: str = "jieba"):
         """
-        计算关键词
+        使用TextRank计算关键词
 
         :param text: str, 待分析文本，utf-8编码
         :param topK: int, 提取关键词的数量，默认为10
@@ -117,7 +160,8 @@ if __name__ == '__main__':
     test_text = open("test_text.txt", "r", encoding="utf-8").read()
     # print(test_text)
     keyword_extractor = KeywordExtract()
-    keywords = keyword_extractor.get_keywords(text=test_text, topK=15, seg_tool="pku", window=2, use_stopwords=True, use_postags_filter=True)
+    # keywords = keyword_extractor.get_keywords(text=test_text, topK=15, seg_tool="pku", window=2, use_stopwords=True, use_postags_filter=True)
+    keywords = keyword_extractor.get_keywords_by_tfidf(text=test_text, topK=15, seg_tool="jieba")
     for k, v in keywords:
         print(k)
 
@@ -125,12 +169,13 @@ if __name__ == '__main__':
     import time
     s_t = time.time()
     for i in range(10):
-        keywords2 = keyword_extractor.get_keywords(text=test_text,
-                                                   topK=10,
-                                                   seg_tool="pku",
-                                                   window=2,
-                                                   use_stopwords=True,
-                                                   use_postags_filter=True)
+        # keywords2 = keyword_extractor.get_keywords(text=test_text,
+        #                                            topK=10,
+        #                                            seg_tool="pku",
+        #                                            window=2,
+        #                                            use_stopwords=True,
+        #                                            use_postags_filter=True)
+        keywords3 = keyword_extractor.get_keywords_by_tfidf(text=test_text, topK=15, seg_tool="pku")
     e_t = time.time()
     print(f"\n10篇文章提取关键词耗时{e_t-s_t}s。")
 

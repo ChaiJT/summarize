@@ -14,7 +14,7 @@ thu_allow_speech_tags = ["n", "np", "ns", "ni", "nz", "v", "t", "i", "j"]
 # 北大分词工具词性 https://github.com/lancopku/pkuseg-python/blob/master/tags.txt
 pku_allow_speech_tags = ["n", "nr", "ns", "nt", "nx", "nz", "vn", "vd", "vx", "t", "v", "i", "l", "j"]    # "a", "z", "an"
 # 结巴分词工具词性 https://github.com/fxsjy/jieba
-jieba_allow_speech_tags = ["n", "nr", "ns", "nt", "nw", "nz", "vn", "vd", "t"]   # "a", "an",
+jieba_allow_speech_tags = ["n", "nr", "ns", "nt", "nw", "nz", "v", "vn", "vd", "t"]   # "a", "an",
 
 default_allow_speech_tags = []
 default_allow_speech_tags.extend(thu_allow_speech_tags)
@@ -143,6 +143,24 @@ def sorted_sentences_by_textrank(sentences: list, words: list):
         sorted_sentences.append(item)
 
     return sorted_sentences
+
+
+def read_idf_dict(dict_path: str):
+    """读取idf词典，以字典存储"""
+    idf_dict = {}
+    with open(dict_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        for line in lines:
+            parts = line.split(" ")
+            word = parts[0]
+            idf_value = float(parts[1])
+            idf_dict[word]=idf_value
+    return idf_dict
+
+
+idf_folder = os.path.dirname(os.path.realpath(__file__))
+idf_path = os.path.join(idf_folder, "idf_dict.txt")
+idf_dict = read_idf_dict(idf_path)
 
 
 if __name__ == '__main__':
